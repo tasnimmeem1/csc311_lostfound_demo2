@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="_csrf" th:content="${_csrf.token}">
+  <meta name="_csrf_header" th:content="${_csrf.headerName}">
   <title>Campus Lost &amp; Found</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 24px; }
@@ -11,6 +13,11 @@
 </head>
 <body>
   <h1>Campus Lost &amp; Found</h1>
+  <p>Signed in as <span th:text="${username}"></span></p>
+  <form th:action="@{/logout}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <button type="submit">Sign out</button>
+  </form>
 
   <!-- Items come from /api/items -->
   <ul id="items"></ul>
@@ -40,9 +47,14 @@
         title: document.getElementById("title").value,
         location: document.getElementById("location").value
       };
+      const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
       await fetch("/api/items", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          [csrfHeader]: csrfToken
+        },
         body: JSON.stringify(item)
       });
       event.target.reset();
